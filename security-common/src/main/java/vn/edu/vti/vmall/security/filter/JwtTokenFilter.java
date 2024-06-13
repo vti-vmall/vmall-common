@@ -6,7 +6,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.List;
-import lombok.RequiredArgsConstructor;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -14,18 +14,24 @@ import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 import vn.edu.vti.vmall.security.VMallAuthentication;
+import vn.edu.vti.vmall.security.config.PublicURLConfigProperties;
 import vn.edu.vti.vmall.security.util.JwtUtil;
 
 @Slf4j
 @Component
 @Configuration
-@RequiredArgsConstructor
 public class JwtTokenFilter extends OncePerRequestFilter {
 
   private final JwtUtil jwtUtil;
-  private static final List<AntPathRequestMatcher> PERMIT_ALL_MATCHERS = List.of(
-      new AntPathRequestMatcher("/api/v1/auth/**")
-  );
+  private final List<AntPathRequestMatcher> PERMIT_ALL_MATCHERS;
+
+  public JwtTokenFilter(JwtUtil jwtUtil, PublicURLConfigProperties publicURLConfigProperties) {
+    this.jwtUtil = jwtUtil;
+    PERMIT_ALL_MATCHERS = publicURLConfigProperties.getUrls()
+        .stream().map(
+            AntPathRequestMatcher::new
+        ).collect(Collectors.toList());
+  }
 
   @Override
   protected void doFilterInternal(
@@ -33,7 +39,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
       HttpServletResponse response,
       FilterChain filterChain)
       throws ServletException, IOException {
-    if (isPermit(request)) {
+    if (isPublicPath(request)) {
       filterChain.doFilter(request, response);
       return;
     }
@@ -59,7 +65,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     return httpServletRequest.getHeader("Authorization");
   }
 
-  private boolean isPermit(HttpServletRequest request) {
+  private boolean isPublicPath(HttpServletRequest request) {
     for (AntPathRequestMatcher matcher : PERMIT_ALL_MATCHERS) {
       if (matcher.matches(request)) {
         return true;

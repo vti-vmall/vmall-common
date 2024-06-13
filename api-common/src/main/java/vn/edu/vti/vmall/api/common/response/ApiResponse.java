@@ -13,6 +13,7 @@ public class ApiResponse<T> {
   private ApiResponseStatus status;
   private T data;
   private String error;
+  private String traceId;
 
   public static <T> ApiResponse<T> success(T data){
     var response = new ApiResponse<T>();

@@ -11,7 +11,8 @@ import vn.edu.vti.vmall.security.util.JwtUtil;
 @Import({
     JwtTokenFilter.class,
     JWTTokenProperties.class,
-    JwtUtil.class
+    JwtUtil.class,
+    PublicURLConfigProperties.class,
 })
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
