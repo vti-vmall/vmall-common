@@ -23,14 +23,9 @@ import vn.edu.vti.vmall.security.util.JwtUtil;
 public class JwtTokenFilter extends OncePerRequestFilter {
 
   private final JwtUtil jwtUtil;
-  private final List<AntPathRequestMatcher> PERMIT_ALL_MATCHERS;
 
-  public JwtTokenFilter(JwtUtil jwtUtil, PublicURLConfigProperties publicURLConfigProperties) {
+  public JwtTokenFilter(JwtUtil jwtUtil) {
     this.jwtUtil = jwtUtil;
-    PERMIT_ALL_MATCHERS = publicURLConfigProperties.getUrls()
-        .stream().map(
-            AntPathRequestMatcher::new
-        ).collect(Collectors.toList());
   }
 
   @Override
@@ -39,12 +34,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
       HttpServletResponse response,
       FilterChain filterChain)
       throws ServletException, IOException {
-    if (isPublicPath(request)) {
-      filterChain.doFilter(request, response);
-      return;
-    }
     String token = extractTokenFromHeader(request);
     if (token == null) {
+      log.warn("(doFilterInternal)Token is null");
       filterChain.doFilter(request, response);
       return;
     }
@@ -63,14 +55,5 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
   private String extractTokenFromHeader(HttpServletRequest httpServletRequest) {
     return httpServletRequest.getHeader("Authorization");
-  }
-
-  private boolean isPublicPath(HttpServletRequest request) {
-    for (AntPathRequestMatcher matcher : PERMIT_ALL_MATCHERS) {
-      if (matcher.matches(request)) {
-        return true;
-      }
-    }
-    return false;
   }
 }

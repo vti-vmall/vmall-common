@@ -5,7 +5,9 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import vn.edu.vti.vmall.api.common.exception.VMallException;
@@ -24,6 +26,22 @@ public class VMallExceptionHandler {
     return ResponseEntity.status(exceptionInfo.getHttpStatus()).body(ApiResponse.error(
         getErrorMessage(Locale.getDefault(), exceptionInfo.getErrorCode(), exceptionInfo.getErrorDescription())
     ));
+  }
+
+  @ExceptionHandler(MethodArgumentNotValidException.class)
+  public ResponseEntity<ApiResponse<?>> handleValidationExceptions(MethodArgumentNotValidException e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(
+            ApiResponse.error(e.getMessage())
+        );
+  }
+
+  @ExceptionHandler(Exception.class)
+  public ResponseEntity<ApiResponse<?>> handleValidationExceptions(Exception e) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(
+            ApiResponse.error(e.getMessage())
+        );
   }
 
   private String getErrorMessage(Locale locale, String key, String defaultValue) {
